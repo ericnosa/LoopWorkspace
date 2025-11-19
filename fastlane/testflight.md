@@ -143,6 +143,8 @@ Note 2 - Depending on your build history, you may find some of the Identifiers a
     * Loop Intent Extension
     * Loop Status Extension
     * Loop Widget Extension
+    * WatchApp
+    * WatchApp Extension
 1. Click on the identifier's name.
 1. On the "App Groups" capabilities, click on the "Configure" button.
 1. Select the "Loop App Group"
