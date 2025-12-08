@@ -8,7 +8,6 @@
 # For a list of all available plugins, check out
 #
 #     https://docs.fastlane.tools/plugins/available-plugins
-#
 
 default_platform(:ios)
 
