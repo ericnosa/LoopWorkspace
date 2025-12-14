@@ -180,7 +180,7 @@ platform :ios do
         .find { |c| c.capability_type == Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS }
 
       settings = {
-        app_groups: [
+        appGroups: [
           {
             identifier: app_group_identifier
           }
@@ -198,8 +198,7 @@ platform :ios do
       else
         bundle_id.update_capability(
           Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
-          enabled: true,
-          settings: []
+          settings: settings
         )
       end
     end
