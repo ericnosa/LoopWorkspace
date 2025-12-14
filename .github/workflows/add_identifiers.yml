@@ -51,4 +51,3 @@ jobs:
           FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
           FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
           FASTLANE_VERBOSE: "1"
-          SPACESHIP_DEBUG: "1"
