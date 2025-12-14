@@ -177,13 +177,13 @@ platform :ios do
         .get_capabilities
         .find { |c| c.capability_type == Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS }
 
-      settings = Spaceship::ConnectAPI::BundleIdCapabilitySetting.new(
+      settings = {
         app_groups: [
-          Spaceship::ConnectAPI::BundleIdCapabilitySetting::AppGroup.new(
+          {
             identifier: app_group_identifier
-          )
+          }
         ]
-      )
+      }
 
       current_groups = Array(capability&.settings&.app_groups).map(&:identifier)
       return if current_groups.include?(app_group_identifier)
