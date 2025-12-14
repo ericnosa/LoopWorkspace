@@ -211,6 +211,7 @@ platform :ios do
       Spaceship::ConnectAPI::BundleIdCapability::Type::SIRIKIT,
       Spaceship::ConnectAPI::BundleIdCapability::Type::NFC_TAG_READING
     ])
+    
     ensure_app_group_capability(loop_bundle, loop_app_group_identifier)
 
     intent_bundle = configure_bundle_id("Loop Intent Extension", "com.#{TEAMID}.loopkit.Loop.Loop-Intent-Extension", [
