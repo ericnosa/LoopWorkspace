@@ -39,6 +39,22 @@ jobs:
       # Sync the GitHub runner clock with the Windows time server (workaround as suggested in https://github.com/actions/runner/issues/2996)
       - name: Sync clock
         run: sudo sntp -sS time.windows.com
+      # Write the App Store Connect API key to a file (from Base64 secret)
+      - name: Write ASC API key file
+        shell: bash
+        run: |
+          mkdir -p fastlane
+          python3 - <<'PY'
+          import os, base64, pathlib
+          b64 = os.environ["FASTLANE_KEY_B64"].strip()
+          data = base64.b64decode(b64)
+          p = pathlib.Path("fastlane/AuthKey.p8")
+          p.write_bytes(data.replace(b"\r\n", b"\n"))
+          print("Wrote", p, "bytes:", p.stat().st_size)
+          PY
+          chmod 600 fastlane/AuthKey.p8
+        env:
+          FASTLANE_KEY_B64: ${{ secrets.FASTLANE_KEY_B64 }}
       
       # Create or update identifiers for app
       - name: Fastlane Provision
