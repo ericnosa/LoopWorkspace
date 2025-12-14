@@ -2,16 +2,10 @@ name: 4. Build Loop
 run-name: Build Loop (${{ github.ref_name }})
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "**"  # build on any branch push
   schedule:
     # Check for updates every Sunday
     #   Later logic builds if there are updates or if it is the 2nd Sunday of the month
     - cron: "33 7 * * 0" # Sunday at UTC 7:33
-  pull_request:
-    branches:
-      - "**"
 
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
@@ -278,70 +272,4 @@ jobs:
             artifacts
             buildlog
 
-  # Build on PRs without depending on check_status/check_certs
-  build_pr:
-    name: Build (PR)
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: macos-15
-    permissions:
-      contents: write
-    steps:
-      - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer"
-
-      - name: Checkout Repo for building
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_PAT }}
-          submodules: recursive
-
-      - name: Customize Loop
-        run: |
-          if $(ls ./patches/* &> /dev/null); then
-          git apply ./patches/* --allow-empty -v --whitespace=fix
-          fi
-
-      - name: Patch Match Tables
-        run: |
-          TABLE_PRINTER_PATH=$(ruby -e 'puts Gem::Specification.find_by_name("fastlane").gem_dir')/match/lib/match/table_printer.rb
-          if [ -f "$TABLE_PRINTER_PATH" ]; then
-            sed -i "" "/puts(Terminal::Table.new(params))/d" "$TABLE_PRINTER_PATH"
-          else
-            echo "table_printer.rb not found"
-            exit 1
-          fi
-
-      - name: Install Project Dependencies
-        run: bundle install
-
-      - name: Sync clock
-        run: sudo sntp -sS time.windows.com
-
-      - name: Fastlane Build & Archive
-        run: bundle exec fastlane build_loop
-        env:
-          TEAMID: ${{ secrets.TEAMID }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
-          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
-          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-
-      - name: Fastlane upload to TestFlight
-        run: bundle exec fastlane release
-        env:
-          TEAMID: ${{ secrets.TEAMID }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
-          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
-          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-
-      - name: Upload build log, IPA and Symbol artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            artifacts
-            buildlog
+  

@@ -2,12 +2,6 @@ name: 2. Add Identifiers
 run-name: Add Identifiers (${{ github.ref_name }})
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "**"  # run on any branch push
-  pull_request:
-    branches:
-      - "**"
 
 jobs:
   validate:
