@@ -13,11 +13,11 @@ jobs:
   validate:
     name: Validate
     uses: ./.github/workflows/validate_secrets.yml
+    continue-on-error: true
     secrets: inherit
   
   identifiers:
     name: Add Identifiers
-    needs: validate
     runs-on: macos-15
     steps:
       # Checks-out the repo

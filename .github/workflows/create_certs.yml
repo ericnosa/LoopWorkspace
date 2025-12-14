@@ -7,9 +7,6 @@ on:
   push:
     branches:
       - "**"  # run on any branch push
-  pull_request:
-    branches:
-      - "**"
 
 env:
   TEAMID: ${{ secrets.TEAMID }}
