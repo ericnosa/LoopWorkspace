@@ -4,9 +4,12 @@ run-name: Create Certificates (${{ github.ref_name }})
 on:
   workflow_call: {}
   workflow_dispatch:
+  push:
+    branches:
+      - "**"  # run on any branch push
   pull_request:
     branches:
-      - main
+      - "**"
 
 env:
   TEAMID: ${{ secrets.TEAMID }}
