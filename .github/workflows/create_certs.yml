@@ -1,7 +1,12 @@
 name: 3. Create Certificates
 run-name: Create Certificates (${{ github.ref_name }})
 
-on: [workflow_call, workflow_dispatch]
+on:
+  workflow_call: {}
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
 
 env:
   TEAMID: ${{ secrets.TEAMID }}
