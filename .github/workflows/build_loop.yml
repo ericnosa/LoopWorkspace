@@ -2,16 +2,10 @@ name: 4. Build Loop
 run-name: Build Loop (${{ github.ref_name }})
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - "**"  # build on any branch push
   schedule:
     # Check for updates every Sunday
     #   Later logic builds if there are updates or if it is the 2nd Sunday of the month
     - cron: "33 7 * * 0" # Sunday at UTC 7:33
-  pull_request:
-    branches:
-      - "**"
 
 env:
   GH_PAT: ${{ secrets.GH_PAT }}
@@ -34,19 +28,14 @@ jobs:
     steps:
 
       - name: Access
-        if: ${{ github.event_name != 'pull_request' }}
         id: workflow-permission
         run: |
-          # Validate Access Token
-          
-          # Ensure that gh exit codes are handled when output is piped.
+          # Validate Access Token (more robust, with User-Agent and /user endpoint)
           set -o pipefail
-          
-          # Define patterns to validate the access token (GH_PAT) and distinguish between classic and fine-grained tokens.
+
           GH_PAT_CLASSIC_PATTERN='^ghp_[a-zA-Z0-9]{36}$'
           GH_PAT_FINE_GRAINED_PATTERN='^github_pat_[a-zA-Z0-9]{22}_[a-zA-Z0-9]{59}$'
-          
-          # Validate Access Token (GH_PAT)
+
           if [ -z "$GH_PAT" ]; then
             failed=true
             echo "::error::The GH_PAT secret is unset or empty. Set it and try again."
@@ -60,15 +49,29 @@ jobs:
               unknown_format=true
               echo "The GH_PAT secret does not have a known token format."
             fi
-            
-            # Attempt to capture the x-oauth-scopes scopes of the token.
-            if ! scopes=$(curl -sS -f -I -H "Authorization: token $GH_PAT" https://api.github.com | { grep -i '^x-oauth-scopes:' || true; } | cut -d ' ' -f2- | tr -d '\r'); then
+
+            # Prefer /user to obtain scopes; fallback to root if needed
+            scopes=$(
+              curl -sS -f -I \
+                   -H "Authorization: token $GH_PAT" \
+                   -H "User-Agent: gha" \
+                   https://api.github.com/user \
+              | { grep -i '^x-oauth-scopes:' || true; } | cut -d ' ' -f2- | tr -d '\r'
+            ) || scopes=""
+
+            if [ -z "$scopes" ]; then
+              scopes=$(
+                curl -sS -f -I \
+                     -H "Authorization: token $GH_PAT" \
+                     -H "User-Agent: gha" \
+                     https://api.github.com \
+                | { grep -i '^x-oauth-scopes:' || true; } | cut -d ' ' -f2- | tr -d '\r'
+              ) || scopes=""
+            fi
+
+            if [ -z "$scopes" ]; then
               failed=true
-              if [ $unknown_format ]; then
-                echo "::error::Unable to connect to GitHub using the GH_PAT secret. Verify that it is set correctly (including the 'ghp_' or 'github_pat_' prefix) and try again."
-              else
-                echo "::error::Unable to connect to GitHub using the GH_PAT secret. Verify that the token exists and has not expired at https://github.com/settings/tokens. If necessary, regenerate or create a new token (and update the secret), then try again."
-              fi
+              echo "::error::Unable to connect to GitHub using the GH_PAT secret (no scopes returned). Verify the token exists, is not expired, and is authorized for SSO if required."
             elif [[ $scopes =~ workflow ]]; then
               echo "The GH_PAT secret has repo and workflow permissions."
               echo "has_permission=true" >> $GITHUB_OUTPUT
@@ -87,7 +90,7 @@ jobs:
               echo "has_permission=true" >> $GITHUB_OUTPUT
             fi
           fi
-          
+
           # Exit unsuccessfully if secret validation failed.
           if [ $failed ]; then
             exit 2
@@ -269,70 +272,4 @@ jobs:
             artifacts
             buildlog
 
-  # Build on PRs without depending on check_status/check_certs
-  build_pr:
-    name: Build (PR)
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: macos-15
-    permissions:
-      contents: write
-    steps:
-      - name: Select Xcode version
-        run: "sudo xcode-select --switch /Applications/Xcode_16.4.app/Contents/Developer"
-
-      - name: Checkout Repo for building
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_PAT }}
-          submodules: recursive
-
-      - name: Customize Loop
-        run: |
-          if $(ls ./patches/* &> /dev/null); then
-          git apply ./patches/* --allow-empty -v --whitespace=fix
-          fi
-
-      - name: Patch Match Tables
-        run: |
-          TABLE_PRINTER_PATH=$(ruby -e 'puts Gem::Specification.find_by_name("fastlane").gem_dir')/match/lib/match/table_printer.rb
-          if [ -f "$TABLE_PRINTER_PATH" ]; then
-            sed -i "" "/puts(Terminal::Table.new(params))/d" "$TABLE_PRINTER_PATH"
-          else
-            echo "table_printer.rb not found"
-            exit 1
-          fi
-
-      - name: Install Project Dependencies
-        run: bundle install
-
-      - name: Sync clock
-        run: sudo sntp -sS time.windows.com
-
-      - name: Fastlane Build & Archive
-        run: bundle exec fastlane build_loop
-        env:
-          TEAMID: ${{ secrets.TEAMID }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
-          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
-          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-
-      - name: Fastlane upload to TestFlight
-        run: bundle exec fastlane release
-        env:
-          TEAMID: ${{ secrets.TEAMID }}
-          GH_PAT: ${{ secrets.GH_PAT }}
-          FASTLANE_KEY_ID: ${{ secrets.FASTLANE_KEY_ID }}
-          FASTLANE_ISSUER_ID: ${{ secrets.FASTLANE_ISSUER_ID }}
-          FASTLANE_KEY: ${{ secrets.FASTLANE_KEY }}
-          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
-
-      - name: Upload build log, IPA and Symbol artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            artifacts
-            buildlog
+  
