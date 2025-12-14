@@ -223,6 +223,7 @@ platform :ios do
     status_bundle = configure_bundle_id("Loop Status Extension", "com.#{TEAMID}.loopkit.Loop.statuswidget", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
+    
     ensure_app_group_capability(status_bundle, loop_app_group_identifier)
 
     watch_app_bundle = configure_bundle_id("WatchApp", "com.#{TEAMID}.loopkit.Loop.LoopWatch", [
