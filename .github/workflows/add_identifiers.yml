@@ -7,7 +7,6 @@ jobs:
   validate:
     name: Validate
     uses: ./.github/workflows/validate_secrets.yml
-    continue-on-error: true
     secrets: inherit
   
   identifiers:
