@@ -198,8 +198,8 @@ platform :ios do
       else
         bundle_id.update_capability(
           Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS,
-          settings: settings,
-          options: capability.options
+          enabled: true,
+          settings: []
         )
       end
     end
