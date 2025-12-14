@@ -153,10 +153,14 @@ platform :ios do
     setup_ci if ENV['CI']
     ENV["MATCH_READONLY"] = false.to_s
     
+    key_path = ENV["FASTLANE_KEY_PATH"]
+    UI.user_error!("FASTLANE_KEY_PATH is not set") if key_path.to_s.strip.empty?
+    UI.user_error!("AuthKey.p8 not found at #{key_path}") unless File.exist?(key_path)
+
     app_store_connect_api_key(
-      key_id: "#{FASTLANE_KEY_ID}",
-      issuer_id: "#{FASTLANE_ISSUER_ID}",
-      key_filepath: ENV["FASTLANE_KEY_PATH"],
+      key_id: ENV["FASTLANE_KEY_ID"],
+      issuer_id: ENV["FASTLANE_ISSUER_ID"],
+      key_filepath: key_path,
       set_spaceship_token: true
     )
 
