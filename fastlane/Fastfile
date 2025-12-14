@@ -186,7 +186,6 @@ platform :ios do
           }
         ]
       }
-
       current_groups = Array(capability&.settings&.app_groups).map(&:identifier)
       return if current_groups.include?(app_group_identifier)
 
