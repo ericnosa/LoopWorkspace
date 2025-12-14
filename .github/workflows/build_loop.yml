@@ -34,7 +34,6 @@ jobs:
         id: workflow-permission
         run: |
           # Validate Access Token
-          
           # Ensure that gh exit codes are handled when output is piped.
           set -o pipefail
           
