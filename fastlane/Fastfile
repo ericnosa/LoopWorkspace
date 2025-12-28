@@ -360,6 +360,7 @@ platform :ios do
       end
     end
 
+    
     # Write result to new_certificate_needed.txt
     file_path = File.expand_path('new_certificate_needed.txt')
     File.write(file_path, new_certificate_needed ? 'true' : 'false')  
