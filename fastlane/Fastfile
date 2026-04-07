@@ -14,7 +14,7 @@ default_platform(:ios)
 
 TEAMID = ENV["TEAMID"]
 GH_PAT = ENV["GH_PAT"]
-GITHUB_WORKSPACE = ENV["GITHUB_WORKSPACE"]
+GITHUB_WORKSPACE = ENV["GITHUB_WORKSPACE"] || File.expand_path("../..", __FILE__)
 GITHUB_REPOSITORY_OWNER = ENV["GITHUB_REPOSITORY_OWNER"]
 FASTLANE_KEY_ID = ENV["FASTLANE_KEY_ID"]
 FASTLANE_ISSUER_ID = ENV["FASTLANE_ISSUER_ID"]
@@ -152,11 +152,19 @@ platform :ios do
     setup_ci if ENV['CI']
     ENV["MATCH_READONLY"] = false.to_s
     
-    app_store_connect_api_key(
-      key_id: "#{FASTLANE_KEY_ID}",
-      issuer_id: "#{FASTLANE_ISSUER_ID}",
-      key_content: "#{FASTLANE_KEY}"
-    )
+    if ENV["FASTLANE_KEY_PATH"] && !ENV["FASTLANE_KEY_PATH"].empty?
+      app_store_connect_api_key(
+        key_id: "#{FASTLANE_KEY_ID}",
+        issuer_id: "#{FASTLANE_ISSUER_ID}",
+        key_filepath: ENV["FASTLANE_KEY_PATH"]
+      )
+    else
+      app_store_connect_api_key(
+        key_id: "#{FASTLANE_KEY_ID}",
+        issuer_id: "#{FASTLANE_ISSUER_ID}",
+        key_content: "#{FASTLANE_KEY}"
+      )
+    end
 
     def configure_bundle_id(name, identifier, capabilities)
       bundle_id = Spaceship::ConnectAPI::BundleId.find(identifier) || Spaceship::ConnectAPI::BundleId.create(
