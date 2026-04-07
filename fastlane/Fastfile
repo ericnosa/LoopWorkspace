@@ -202,6 +202,17 @@ platform :ios do
     ])
     ensure_app_group_capability(loop_bundle, loop_app_group_identifier)
 
+    # Create the main Loop app record in App Store Connect if it does not exist.
+    # skip_devcenter: true because the bundle ID is already registered above.
+    produce(
+      app_identifier: "com.#{TEAMID}.loopkit.Loop",
+      app_name: "Loop",
+      language: "English",
+      sku: "com#{TEAMID}loopkitLoop",
+      skip_itc: false,
+      skip_devcenter: true
+    )
+
     intent_bundle = configure_bundle_id("Loop Intent Extension", "com.#{TEAMID}.loopkit.Loop.Loop-Intent-Extension", [
       Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS
     ])
