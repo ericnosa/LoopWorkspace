@@ -180,12 +180,7 @@ platform :ios do
     end
 
     def ensure_app_group_capability(bundle_id, app_group_identifier)
-      return unless bundle_id && app_group_identifier
-
-      existing_types = bundle_id.get_capabilities.map(&:capability_type)
-      return if existing_types.include?(Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS)
-
-      bundle_id.create_capability(Spaceship::ConnectAPI::BundleIdCapability::Type::APP_GROUPS)
+      UI.message("App group capability is handled by configure_bundle_id and match")
     end
 
     loop_app_group_identifier = "group.com.#{TEAMID}.loopkit.Loop"
