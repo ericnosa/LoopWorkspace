@@ -180,7 +180,14 @@ platform :ios do
     end
 
     def ensure_app_group_capability(bundle_id, app_group_identifier)
-      UI.message("App group capability is handled by configure_bundle_id and match")
+      identifier = bundle_id.respond_to?(:identifier) ? bundle_id.identifier : bundle_id.to_s
+      produce(
+        app_identifier: identifier,
+        skip_itc: true,
+        enable_services: {
+          app_group: "on"
+        }
+      )
     end
 
     loop_app_group_identifier = "group.com.#{TEAMID}.loopkit.Loop"
