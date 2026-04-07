@@ -182,6 +182,7 @@ platform :ios do
     def ensure_app_group_capability(bundle_id, app_group_identifier)
       identifier = bundle_id.respond_to?(:identifier) ? bundle_id.identifier : bundle_id.to_s
       produce(
+        username: ENV["FASTLANE_USER"],
         app_identifier: identifier,
         skip_itc: true,
         enable_services: {
